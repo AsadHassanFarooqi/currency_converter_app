@@ -6,8 +6,8 @@ const CurrencyRow = ({ currencyOptions, selectedCurrecny, onChangeCurrency, amou
       <div className="field__wrapper">
         <label htmlFor="select">Currency</label>
         <select className="currency__select" id="select" value={selectedCurrecny} onChange={onChangeCurrency}>
-          {currencyOptions.map((option) => (
-            <option value={option} key={option}>{option}</option>
+          {currencyOptions.map((option, index) => (
+            <option value={option} key={option+ index}>{option}</option>
           ))}
         </select>
       </div>
@@ -20,6 +20,7 @@ const CurrencyRow = ({ currencyOptions, selectedCurrecny, onChangeCurrency, amou
           id="input"
           value={amount}
           onChange={onChangeAmount}
+          min='0'
         />
       </div>
     </div>

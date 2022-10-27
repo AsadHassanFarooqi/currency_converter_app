@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Header from "./components/header/Header";
 import CurrencyRow from "./components/currency-row/CurrencyRow";
+import Modal from "./components/modal/Modal";
 import "./App.css";
 
 const BASE_URL = "https://api.apilayer.com/exchangerates_data";
 
-const API_KEY = "GiM1deIePxo5CV65Y876eO2SxNJm8xXa";
+const API_KEY = "bY48lRq39eO1tUP9nVeZ4jA0T5RwX03k";
 
 function App() {
   const [currencyOptions, setCurrencyOptions] = useState([]);
@@ -14,6 +15,7 @@ function App() {
   const [exchangeRate, setExchangeRate] = useState();
   const [amount, setAmount] = useState(1);
   const [amountInFromCurrency, setAmountInFromCurrency] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   let toAmount, fromAmount;
   if (amountInFromCurrency) {
@@ -28,11 +30,13 @@ function App() {
     fetch(`${BASE_URL}/latest?apikey=${API_KEY}`)
       .then((res) => res.json())
       .then((data) => {
+        setIsLoading(true);
         const firstCurrency = Object.keys(data.rates)[0];
         setCurrencyOptions([data.base, ...Object.keys(data.rates)]);
         setFromCurrency(data.base);
         setToCurrency(firstCurrency);
         setExchangeRate(data.rates[firstCurrency]);
+        setIsLoading(false);
       });
   }, []);
 
@@ -47,33 +51,44 @@ function App() {
   };
 
   useEffect(() => {
-    if(toCurrency != null && fromCurrency != null) {
-      fetch(`${BASE_URL}/convert?to=${toCurrency}&from=${fromCurrency}&amount=${amount}&apikey=${API_KEY}`)
-      .then(res => res.json())
-      .then(data => setExchangeRate(data.result));
+    if (toCurrency != null && fromCurrency != null) {
+      setIsLoading(true);
+      fetch(
+        `${BASE_URL}/convert?to=${toCurrency}&from=${fromCurrency}&amount=${amount}&apikey=${API_KEY}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setExchangeRate(data.result);
+          setIsLoading(false);
+        });
     }
   }, [fromCurrency, toCurrency, amount]);
 
   return (
     <div className="container">
       <Header />
-      <div className="wrapper">
-        <CurrencyRow
-          currencyOptions={currencyOptions}
-          selectedCurrecny={fromCurrency}
-          onChangeCurrency={(e) => setFromCurrency(e.target.value)}
-          amount={fromAmount}
-          onChangeAmount={handleFromAmountChange}
-        />
-        <p className="equals">=</p>
-        <CurrencyRow
-          currencyOptions={currencyOptions}
-          selectedCurrecny={toCurrency}
-          onChangeCurrency={(e) => setToCurrency(e.target.value)}
-          amount={toAmount}
-          onChangeAmount={handleToAmountChange}
-        />
-      </div>
+      {isLoading ? (
+        <Modal />
+      ) : (
+        <div className="wrapper">
+          <CurrencyRow
+            currencyOptions={currencyOptions}
+            selectedCurrecny={fromCurrency}
+            onChangeCurrency={(e) => setFromCurrency(e.target.value)}
+            amount={fromAmount}
+            onChangeAmount={handleFromAmountChange}
+          />
+          <p className="equals">=</p>
+          <CurrencyRow
+            currencyOptions={currencyOptions}
+            selectedCurrecny={toCurrency}
+            onChangeCurrency={(e) => setToCurrency(e.target.value)}
+            amount={toAmount}
+            onChangeAmount={handleToAmountChange}
+          />
+        </div>
+      )}
+      <h2 className="rates">Rates: <span>{exchangeRate}</span></h2>
     </div>
   );
 }
